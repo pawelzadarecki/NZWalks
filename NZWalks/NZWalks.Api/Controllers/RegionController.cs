@@ -67,6 +67,12 @@ namespace NZWalks.Api.Controllers
 
         public async Task<IActionResult> AddRegionAsync(Models.DTO.AddRegionRequest addRegionRequest)
         {
+            //Validate DTO 
+            if(!ValidateAddRegionAsync(addRegionRequest))
+            {
+                return BadRequest(ModelState);
+            } 
+
             // Repository(DTO) to Domain Model
             var region = new Models.Domian.Region()
             {
@@ -129,9 +135,12 @@ namespace NZWalks.Api.Controllers
         [HttpPut]
         [Route("{id:guid}")]
 
-        public async Task<IActionResult> UpdateRegion([FromRoute] Guid id, [FromBody] Models.DTO.UpdateRegionRequest updateRegionRequest)
+        public async Task<IActionResult> UpdateRegion([FromRoute] Guid id, 
+            [FromBody] Models.DTO.UpdateRegionRequest updateRegionRequest)
         {
-            // Convert DTO to Domain
+            //Validate data request
+            if (!ValidateUpdateRegion(updateRegionRequest)) return BadRequest(ModelState);
+
             var region = new Models.Domian.Region()
             {
 
@@ -167,5 +176,92 @@ namespace NZWalks.Api.Controllers
             //Return ok response
             return Ok(RegionDTO);
         }
+
+        #region Private methods
+
+        private bool ValidateAddRegionAsync(Models.DTO.AddRegionRequest addRegionRequest)
+        {
+            if(string.IsNullOrWhiteSpace(addRegionRequest.Code))
+            {
+                ModelState.AddModelError(nameof(addRegionRequest.Code), 
+                    $"{nameof(addRegionRequest.Code)} Can't be null or white space");
+            }
+
+            if (string.IsNullOrWhiteSpace(addRegionRequest.Name))
+            {
+                ModelState.AddModelError(nameof(addRegionRequest.Name),
+                    $"{nameof(addRegionRequest.Name)} Can't be null or white space");
+            }
+            if (addRegionRequest.Area <= 0)
+            {
+                ModelState.AddModelError(nameof(addRegionRequest.Area),
+                    $"{nameof(addRegionRequest.Area)} Can't be 0 or less");
+            }
+            if (addRegionRequest.lat <= 0)
+            {
+                ModelState.AddModelError(nameof(addRegionRequest.lat),
+                    $"{nameof(addRegionRequest.lat)} Can't be 0 or less");
+            }
+            if (addRegionRequest.Long <= 0)
+            {
+                ModelState.AddModelError(nameof(addRegionRequest.Long),
+                    $"{nameof(addRegionRequest.Long)} Can't be 0 or less");
+            }
+            if (addRegionRequest.Population < 0)
+            {
+                ModelState.AddModelError(nameof(addRegionRequest.Population),
+                    $"{nameof(addRegionRequest.Population)} Can't be less than 0");
+            }
+
+            if (ModelState.ErrorCount > 0) return false;
+
+            return true;
+        }
+
+        private bool ValidateUpdateRegion(Models.DTO.UpdateRegionRequest updateRegionRequest)
+
+
+        {
+            if (string.IsNullOrWhiteSpace(updateRegionRequest.Code))
+            {
+                ModelState.AddModelError(nameof(updateRegionRequest.Code),
+                    $"{nameof(updateRegionRequest.Code)} Can't be null or white space");
+            }
+            if (string.IsNullOrWhiteSpace(updateRegionRequest.Name))
+            {
+                ModelState.AddModelError(nameof(updateRegionRequest.Name),
+                    $"{nameof(updateRegionRequest.Name)} Can't be null or white space");
+            }
+            if (updateRegionRequest.Area <= 0)
+            {
+                ModelState.AddModelError(nameof(updateRegionRequest.Area),
+                    $"{nameof(updateRegionRequest.Area)} Can't be 0 or less");
+            }
+            if (updateRegionRequest.lat <= 0)
+            {
+                ModelState.AddModelError(nameof(updateRegionRequest.lat),
+                    $"{nameof(updateRegionRequest.lat)} Can't be 0 or less");
+            }
+            if (updateRegionRequest.Long <= 0)
+            {
+                ModelState.AddModelError(nameof(updateRegionRequest.Long),
+                    $"{nameof(updateRegionRequest.Long)} Can't be 0 or less");
+            }
+            if (updateRegionRequest.Population < 0)
+            {
+                ModelState.AddModelError(nameof(updateRegionRequest.Population),
+                    $"{nameof(updateRegionRequest.Population)} Can't be less than 0");
+            }
+
+            if (ModelState.ErrorCount > 0) return false;
+
+            return true;
+        }
+
+
+
+        #endregion
+
+
     }
 }
