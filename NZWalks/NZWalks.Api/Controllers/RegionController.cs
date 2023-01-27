@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using NZWalks.Api.Repository;
 
@@ -19,6 +20,7 @@ namespace NZWalks.Api.Controllers
         }
 
         [HttpGet]
+        [Authorize(Roles = "reader")]
 
         public async Task<IActionResult> GetAllRegionsAsync()
         {
@@ -48,6 +50,7 @@ namespace NZWalks.Api.Controllers
         [HttpGet]
         [Route("{id:guid}")]
         [ActionName("GetRegionAsync")]
+        [Authorize(Roles = "reader")]
 
         public async Task<IActionResult> GetRegionAsync(Guid id)
         {
@@ -64,14 +67,15 @@ namespace NZWalks.Api.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles ="writer")]
 
         public async Task<IActionResult> AddRegionAsync(Models.DTO.AddRegionRequest addRegionRequest)
         {
             //Validate DTO 
-            if(!ValidateAddRegionAsync(addRegionRequest))
-            {
-                return BadRequest(ModelState);
-            } 
+            //if(!ValidateAddRegionAsync(addRegionRequest))
+            //{
+            //    return BadRequest(ModelState);
+            //} 
 
             // Repository(DTO) to Domain Model
             var region = new Models.Domian.Region()
@@ -104,6 +108,7 @@ namespace NZWalks.Api.Controllers
 
         [HttpDelete]
         [Route("{id:guid}")]
+        [Authorize(Roles = "writer")]
 
         public async Task<IActionResult> DeleteRegion(Guid id)
         {
@@ -134,12 +139,13 @@ namespace NZWalks.Api.Controllers
 
         [HttpPut]
         [Route("{id:guid}")]
+        [Authorize(Roles = "writer")]
 
         public async Task<IActionResult> UpdateRegion([FromRoute] Guid id, 
             [FromBody] Models.DTO.UpdateRegionRequest updateRegionRequest)
         {
             //Validate data request
-            if (!ValidateUpdateRegion(updateRegionRequest)) return BadRequest(ModelState);
+            //if (!ValidateUpdateRegion(updateRegionRequest)) return BadRequest(ModelState);
 
             var region = new Models.Domian.Region()
             {
@@ -258,10 +264,7 @@ namespace NZWalks.Api.Controllers
             return true;
         }
 
-
-
         #endregion
-
 
     }
 }

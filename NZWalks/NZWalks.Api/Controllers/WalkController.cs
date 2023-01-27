@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using NZWalks.Api.Repository;
 
@@ -23,6 +24,7 @@ namespace NZWalks.Api.Controllers
         }
 
         [HttpGet]
+        [Authorize(Roles = "reader")]
 
         public async Task<IActionResult> GetAllWalks()
         {
@@ -39,6 +41,8 @@ namespace NZWalks.Api.Controllers
         [HttpGet]
         [Route("{id:guid}")]
         [ActionName("GetWalkAsync")]
+        [Authorize(Roles = "reader")]
+
         public async Task<IActionResult> GetWalkAsync(Guid id)
         {
             //Fetch data from database - domain walks
@@ -52,6 +56,7 @@ namespace NZWalks.Api.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = "writer")]
 
         public async Task<IActionResult> AddAsync([FromBody] Models.DTO.AddWalkRequest addWalkRequest)
         {
@@ -85,10 +90,11 @@ namespace NZWalks.Api.Controllers
 
         [HttpPut]
         [Route("{id:guid}")]
+        [Authorize(Roles = "writer")]
 
         public async Task<IActionResult> UpdateWalk([FromRoute]Guid id, [FromBody]Models.DTO.UpdateWalkRequest updateWalkRequest)
         {
-            if(!(ValidateUpdateWalk(updateWalkRequest)))
+            if(!(await ValidateUpdateWalk(updateWalkRequest)))
             {
                 return BadRequest(ModelState);
             }
@@ -98,6 +104,8 @@ namespace NZWalks.Api.Controllers
             {
                 Name = updateWalkRequest.Name,
                 Length = updateWalkRequest.Length,
+                RegionId = updateWalkRequest.RegionId,
+                WalkDifficultyId = updateWalkRequest.WalkDifficultyId,
             };
 
             //Update database
@@ -118,6 +126,7 @@ namespace NZWalks.Api.Controllers
 
         [HttpDelete]
         [Route("{id:guid}")]
+        [Authorize(Roles = "writer")]
 
         public async Task<IActionResult> DeleteAsync(Guid id)
         {
@@ -141,25 +150,25 @@ namespace NZWalks.Api.Controllers
 
         private async Task<bool> ValidateAddAsync(Models.DTO.AddWalkRequest addWalkRequest)
         {
-            if(addWalkRequest == null)
-            {
-                ModelState.AddModelError(nameof(addWalkRequest),
-                $"{nameof(addWalkRequest)} can't be null");
+            //if(addWalkRequest == null)
+            //{
+            //    ModelState.AddModelError(nameof(addWalkRequest),
+            //    $"{nameof(addWalkRequest)} can't be null");
 
-                return false;
-            }
+            //    return false;
+            //}
 
-            if(string.IsNullOrWhiteSpace(addWalkRequest.Name))
-            {
-                ModelState.AddModelError(nameof(addWalkRequest.Name),
-                    $"{nameof(addWalkRequest.Name)} can't be null or white space");
-            }
+            //if(string.IsNullOrWhiteSpace(addWalkRequest.Name))
+            //{
+            //    ModelState.AddModelError(nameof(addWalkRequest.Name),
+            //        $"{nameof(addWalkRequest.Name)} can't be null or white space");
+            //}
 
-            if (addWalkRequest.Length <= 0)
-            {
-                ModelState.AddModelError(nameof(addWalkRequest.Length),
-                    $"{nameof(addWalkRequest.Length)} can't be null or white space");
-            }
+            //if (addWalkRequest.Length <= 0)
+            //{
+            //    ModelState.AddModelError(nameof(addWalkRequest.Length),
+            //        $"{nameof(addWalkRequest.Length)} can't be null or white space");
+            //}
 
             var region = await regionRepository.Get(addWalkRequest.RegionId);
             if (region == null)
@@ -180,25 +189,39 @@ namespace NZWalks.Api.Controllers
             return true;
         }
 
-        private bool ValidateUpdateWalk(Models.DTO.UpdateWalkRequest updateWalkRequest)
+        private async Task<bool> ValidateUpdateWalk(Models.DTO.UpdateWalkRequest updateWalkRequest)
         {
-           if(updateWalkRequest == null)
-           {
-                ModelState.AddModelError(nameof(updateWalkRequest), 
-                    $"{nameof(updateWalkRequest)} can't be null");
-                return false;
-           }
+            //if(updateWalkRequest == null)
+            //{
+            //     ModelState.AddModelError(nameof(updateWalkRequest), 
+            //         $"{nameof(updateWalkRequest)} can't be null");
+            //     return false;
+            //}
 
-           if(string.IsNullOrWhiteSpace(updateWalkRequest.Name))
-           {
-                ModelState.AddModelError(nameof(updateWalkRequest.Name),
-                    $"{nameof(updateWalkRequest.Name)} can't be null or whitespace");
-           }
+            //if(string.IsNullOrWhiteSpace(updateWalkRequest.Name))
+            //{
+            //     ModelState.AddModelError(nameof(updateWalkRequest.Name),
+            //         $"{nameof(updateWalkRequest.Name)} can't be null or whitespace");
+            //}
 
-            if (updateWalkRequest.Length <= 0)
+            // if (updateWalkRequest.Length <= 0)
+            // {
+            //     ModelState.AddModelError(nameof(updateWalkRequest.Length),
+            //         $"{nameof(updateWalkRequest.Length)} can't be null or less");
+            // }
+
+            var region = await regionRepository.Get(updateWalkRequest.RegionId);
+            if (region == null)
             {
-                ModelState.AddModelError(nameof(updateWalkRequest.Length),
-                    $"{nameof(updateWalkRequest.Length)} can't be null or less");
+                ModelState.AddModelError(nameof(updateWalkRequest.RegionId),
+                    $"{nameof(updateWalkRequest.RegionId)} Region not found in database");
+            }
+
+            var walkDifficulty = await walkDifficultyRepository.GetAsync(updateWalkRequest.WalkDifficultyId);
+            if (walkDifficulty == null)
+            {
+                ModelState.AddModelError(nameof(updateWalkRequest.WalkDifficultyId),
+                    $"{nameof(updateWalkRequest.WalkDifficultyId)} Region not found in database");
             }
 
             if (ModelState.ErrorCount > 0) return false;

@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using NZWalks.Api.Models.Domian;
 
+
 namespace NZWalks.Api.Data
 {
     public class NZWalksDbContext: DbContext
@@ -10,10 +11,29 @@ namespace NZWalks.Api.Data
 
         }
 
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<User_Role>()
+                .HasOne(x => x.Role)
+                .WithMany(x => x.User_Roles)
+                .HasForeignKey(x => x.RoleId);
+
+            modelBuilder.Entity<User_Role>()
+                .HasOne(x => x.User)
+                .WithMany(x => x.User_Roles)
+                .HasForeignKey(x => x.UserId);
+        }
+
         public DbSet<Region> Regions { get; set; }
 
         public DbSet<Walk> Walks { get; set; }
 
         public DbSet<WalkDifficulty> WalkDifficulty { get; set; }
+
+        public DbSet<User> Users { get; set; }
+
+        public DbSet<Role> Roles { get; set; }
+
+        public DbSet<User_Role> User_Roles { get; set; }
     }
 }
